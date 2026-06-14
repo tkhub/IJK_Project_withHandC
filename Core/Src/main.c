@@ -218,6 +218,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim6);
   xdev_out(_x_putchar);
   xprintf("\r\n=== !! IJK BOOT OK !! ===\r\n");
+  appInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -230,7 +231,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      HAL_Delay(50);
+      HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }

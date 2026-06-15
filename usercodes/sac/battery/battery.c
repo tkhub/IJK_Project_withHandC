@@ -16,7 +16,7 @@
 #include "orgtypedef.h"
 
 #if SAC_DEBUGMODE == DEBUGMODE_BATTERY_TEST
-#include <stdio.h>
+#include <xprintf.h>
 #include <stdlib.h>
 #endif /* SAC_DEBUGMODE == DEBUGMODE_BATTERY_TEST */
 
@@ -61,7 +61,7 @@ static uint16_t batteryMaskCnt;
  * @param [in] bVol 現在の電圧
  * @param [in] nowLevel 現在のレベル
  * @return 判定後のレベル
- * @detail 配列でサーチするためレベル（数字）で判断する
+ * @details 配列でサーチするためレベル（数字）で判断する
  */
 int8_t batteryLevelDetection(const float bVol, const int8_t nowLevel);
 
@@ -69,7 +69,7 @@ int8_t batteryLevelDetection(const float bVol, const int8_t nowLevel);
  * @brief バッテリーレベルからステート変換関数
  * @param [in] level 判定したいレベル
  * @return 変換後のステート
- * @detail Enum型を直接配列のサーチに使いたくないので変換する
+ * @details Enum型を直接配列のサーチに使いたくないので変換する
  */
 batterystatus_t batteryLevel2batteryState(const int8_t level);
 
@@ -152,7 +152,8 @@ uint8_t batteryTest(char* strBuffer, uint8_t maxBufferSize) {
     batterystatus_t btst;
     btst = batteryReadStateatus();
     batteryState2String(btst, batteryStr);
-    return snprintf(strBuffer, maxBufferSize, "Vbat = %f(%d),\t\tState = %s(%d,%d)", batteryRead(), batteryRaw, batteryStr, batteryStateLevel, btst);
+    xsnprintf(strBuffer, maxBufferSize, "Vbat = %f(%d),\t\tState = %s(%d,%d)", batteryRead(), batteryRaw, batteryStr, batteryStateLevel, btst);
+    return 0;
 }
 #endif /* SAC_DEBUGMODE == DEBUGMODE_BATTERY_TEST */
 

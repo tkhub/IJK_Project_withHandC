@@ -5,6 +5,9 @@
 /.settings/
 .vscode
 
+# STM32 Backup dir
+Core/Src/Backup/
+
 
 # OBJ file
 *.o
@@ -33,3 +36,4 @@ build.ninja
 
 # debug logs
 testlogs/
+bck/

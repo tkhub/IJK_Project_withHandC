@@ -16,7 +16,7 @@
 
 #if SAC_DEBUGMODE == DEBUGMODE_UISW_TEST
 // デバッグではターミナルへの文字表示を行う
-#include <stdio.h>
+#include <xprintf.h>
 #include <string.h>
 #endif /* DEBUGMODE_UISW_TEST */
 
@@ -82,6 +82,8 @@ volatile static uint16_t  sw2_OffCount;
 volatile static uint8_t uisw_intvlcnt;
 
 volatile static uiswevent_t* p_uiswBuffer;
+volatile uiswevent_t uisw_event_buffer[16];
+
 static uint8_t      uiswBffSize;
 volatile uint8_t    uiswBffHead;
 volatile uint8_t    uiswBffTail;
@@ -99,11 +101,11 @@ volatile uint8_t    uiswBffTail;
 /*========VVVV GLOBAL Function Definition START VVVV=========================*/
 /* ヘッダファイルで説明済みのためDoxygenのコメントは不要 */
 
-void uiswInit(volatile uiswevent_t* buffer, uint8_t buffersize) {
+void uiswInit(void) {
     uiswsq = UISWSQ_INIT;
     uiswevent = NON_UISW_EVENT;
-    p_uiswBuffer = buffer;
-    uiswBffSize = buffersize;
+    p_uiswBuffer = uisw_event_buffer;
+    uiswBffSize = UISW_BUFFER_SIZE;
     sw1_tmp3 = false;
     sw2_tmp3 = false;
     sw1_tmp2 = false;
@@ -322,7 +324,8 @@ uint8_t uiswTest(char* strBuffer, uint8_t maxBufferSize) {
         strncpy(sqstr, "!SQERR!", 12);
         break;
     }
-    return snprintf(strBuffer, maxBufferSize,"SQ:%s, EV=%s, SW1CNT=%d, SW2CNT=%d", sqstr, evstr, sw1cnt, sw2cnt);
+    xsnprintf(strBuffer, maxBufferSize,"SQ:%s, EV=%s, SW1CNT=%d, SW2CNT=%d", sqstr, evstr, sw1cnt, sw2cnt);
+    return 0;
 }
 
 #endif /* SAC_DEBUGMODE == DEBUGMODE_UISW_TEST */

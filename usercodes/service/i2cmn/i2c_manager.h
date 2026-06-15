@@ -1,78 +1,64 @@
 /**
- * @file test.h
- * @brief 簡単な説明  
+ * @file i2c_manager.h
+ * @brief I2Cマネージャ
  * @author takap
  * @date Nov 30, 2025
  * @Version 0.00
  */
 
-#ifndef __TEST_H___
-#define __TEST_H___
+#ifndef __I2C_MANAGER_H___
+#define __I2C_MANAGER_H___
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*========VVVV Include Standard Header START VVVV============================*/
+#include <orgtypedef.h>
 /*========AAAA Include Standard Header END AAAA==============================*/
 
 /*========VVVV Include Local Header START VVVV===============================*/
 /*========AAAA Include Local Header END AAAA=================================*/
 
 /*========VVVV Typedef Definition START VVVV=================================*/
-/**
- * @brief ABC_t 型の列挙体
- */
-/**
- * typedef enum {
- *  A,  //! Aの説明
- *  B,  //! Bの説明
- *  C   //! Cの説明
- * } ABC_t;
-*/
-
-/**
- * @brief DEF_t 型の構造体
- */
-/**
- * typedef struct {
- *  int D,  //!  Dの説明
- *  int E,  //!  Eの説明
- *  int F   //!  Fの説明
- * } DEF_t;
-*/
 
 /*========AAAA Typedef Definition END AAAA===================================*/
 
 /*========VVVV MACRO Definition START VVVV===================================*/
-/** 
- * @brief マクロ MAX_NANK の説明
- */
-/* # define MAX_NANKA 256 */
-
+#define GYRO_DATAS_SIZE 14
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
 /*========VVVV GLOBAL Variable Declaration START VVVV========================*/
-/**
- * @brief グローバル変数 lobal_var の説明  
-*/
-/**
- * extern int global_var;
-*/
 
 /*========AAAA GLOBAL Variable Declaration END AAAA==========================*/
 
 /*========VVVV GLOBAL Function Declaration START VVVV========================*/
+
 /**
- * @brief テスト関数
- * @param [in/out] buffer バッファ
- * @param [in] size バッファのサイズ
- * @return 戻り値の説明
- * @details 詳細な説明
+ * @brief i2cマネージャの初期化関数
+ * @details ジャイロやディスプレイの初期化を行う
  */
+void i2cmanagerInit(void);
+
 /**
- * int testFunc(int* buffer, int size)
-*/
+ * @brief 1ms周期で呼び出される制御関数(A)
+ * @details 1msの前半で呼び出される
+ */
+void i2cmanagerControl_1ms_A(void);
+
+/**
+ * @brief 1ms周期で呼び出される制御関数(B)
+ * @details 1msの後半で呼び出される
+ */
+void i2cmanagerControl_1ms_B(void);
+
+/**
+ * @brief メインループ処理を行う
+ * @details メインループ処理を行う
+ */
+void i2cmanagerMainloop(void);
+
+
 
 /*========AAAA GLOBAL Function Declaration END AAAA==========================*/
 
@@ -80,4 +66,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __TEST_H___ */
+#endif /* __I2C_MANAGER_H___*/

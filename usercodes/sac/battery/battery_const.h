@@ -41,70 +41,32 @@ typedef struct {
 
 /**
  * @brief バッテリー電圧計測ゲイン
- * @detail バッテリー計測ADC結果を正しい電圧に変換するための調整値
+ * @details バッテリー計測ADC結果を正しい電圧に変換するための調整値
  */
 extern const float BATTERY_GAIN;
 /**
  * @brief バッテリー電圧計測オフセット
- * @detail バッテリー計測ADC結果を正しい電圧に変換するための調整値
+ * @details バッテリー計測ADC結果を正しい電圧に変換するための調整値
  */
 extern const float BATTERY_OFFSET;
 
 /**
  * @brief バッテリー電圧フィルタゲイン
- * @detail バッテリー電圧のノイズを除去するためのローパスフィルターゲイン
+ * @details バッテリー電圧のノイズを除去するためのローパスフィルターゲイン
  */
 extern const float BATTERY_IIRLPF_GAIN;
-
-//! @brief LIPO 通常状態 → 満充電 しきい値
-extern const float BATTERY_LIPO_NORMFULL;
-//! @brief LIPO 満充電 → 通常状態 しきい値
-extern const float BATTERY_LIPO_FULLNORM;
-
-//! @brief LIPO 消耗注意 → 通常状態 しきい値
-extern const float BATTERY_LIPO_WRNNORM;
-//! @brief LIPO 通常状態 → 消耗注意 しきい値
-extern const float BATTERY_LIPO_NORMWRN;
-
-//! @brief LIPO 過放電警告 → 消耗注意 しきい値
-extern const float BATTERY_LIPO_EMPWRN;
-//! @brief LIPO 消耗注意 → 過放電警告 しきい値
-extern const float BATTERY_LIPO_WRNEMP;
-
-//! @brief LIPOと単３の識別しきい値
-extern const float BATTERY_AAA_LIPO;
-
-//! @brief 単３ 通常状態 → 満充電 しきい値
-extern const float BATTERY_AAA_NORMFULL;
-//! @brief 単３ 満充電 → 通常状態 しきい値
-extern const float BATTERY_AAA_FULLNORM;
-
-//! @brief 単３ 消耗注意 → 通常状態 しきい値
-extern const float BATTERY_AAA_WRNNORM;
-//! @brief 単３ 通常状態 → 消耗注意 しきい値
-extern const float BATTERY_AAA_NORMWRN;
-
-//! @brief 単３ 過放電警告 → 消耗注意 しきい値
-extern const float BATTERY_AAA_EMPWRN;
-//! @brief 単３ 消耗注意 → 過放電警告 しきい値
-extern const float BATTERY_AAA_WRNEMP;
-
-//! @brief 最下限の電圧。これ以下はありえない。
-extern const float BATTERY_VOLTAGE_LO_ERROR;
-//! @brief 最大限の電圧。これ以上はありえない。
-extern const float BATTERY_VOLTAGE_HI_ERROR;
 
 extern const BatteryThresholdsTables_t BATTERY_THRESHOLDS_TABLES;
 
 /**
  * @brief 初期化時の電圧
- * @detail バッテリー電圧のフィルタ収束の早期化とシーケンスが狂わないように念の為設定
+ * @details バッテリー電圧のフィルタ収束の早期化とシーケンスが狂わないように念の為設定
  */
 extern const float BATTERY_INIT_VOL;
 
 /**
  * @brief 電圧安定待ち時間
- * @detail ハード上・ソフト上フィルタの影響を排除するためのマスク時間
+ * @details ハード上・ソフト上フィルタの影響を排除するためのマスク時間
  */
 extern const uint16_t BATTERY_MASK_10MSCNT;
 /*========AAAA GLOBAL Variable Declaration END AAAA==========================*/

@@ -1,25 +1,19 @@
-/**
-* @file sac.h
-* @brief SACのヘッダファイル
-* @author T.Ino
-* @date 2025/10/27
-*
-* @note -
-*/
-#ifndef SAC_SAC_H_
-#define SAC_SAC_H_
+/*
+ * tracectrl.h
+ *
+ *  Created on: Nov 1, 2025
+ *      Author: takap
+ */
+
+#ifndef SRC_USER_APP_TRACECTRL_TRACECTRL_H_
+#define SRC_USER_APP_TRACECTRL_TRACECTRL_H_
 
 /*========VVVV Include Standard Header START VVVV============================*/
+#include "orgtypedef.h"
 /*========AAAA Include Standard Header END AAAA==============================*/
 
 /*========VVVV Include Local Header START VVVV===============================*/
-#include "uisw/uisw.h"
-#include "motor/motor.h"
-#include "buzzer/buzzer.h"
-#include "linmkrssr/linmkrssr.h"
-#include "battery/battery.h"
-#include "imu/imu.h"
-
+#include "app_if.h"
 /*========AAAA Include Local Header END AAAA=================================*/
 
 /*========VVVV Typedef Definition START VVVV=================================*/
@@ -31,6 +25,9 @@
 /*========AAAA Typedef Definition END AAAA===================================*/
 
 /*========VVVV MACRO Definition START VVVV===================================*/
+/** @def
+ * マクロのコメント
+ */
 
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
@@ -44,11 +41,19 @@
 
 /*========VVVV GLOBAL Function Declaration START VVVV========================*/
 /**
- * @brief SAC用のループ関数
- * @detail
+ * @fn
+ * ここに関数の説明を書く
+ * @brief 要約説明
+ * @param (引数名) 引数の説明
+ * @param (引数名) 引数の説明
+ * @return 戻り値の説明
+ * @sa 参照すべき関数を書けばリンクが貼れる
+ * @detail 詳細な説明
  */
-void sacLoop(void);
+
+void tracectrlInit(void);
+void traceCtrInterval_1ms(sensors_t allSensors, drives_t drives);
 
 /*========AAAA GLOBAL Function Declaration END AAAA==========================*/
 
-#endif /* SAC_SAC_H_ */
+#endif /* SRC_USER_APP_TRACECTRL_TRACECTRL_H_ */

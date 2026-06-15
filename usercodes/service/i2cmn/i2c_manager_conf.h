@@ -1,13 +1,13 @@
 /**
- * @file test.h
- * @brief 簡単な説明  
+ * @file i2c_manager_conf.h
+ * @brief  i2cマネージャの設定用のヘッダファイル
  * @author takap
  * @date Nov 30, 2025
  * @Version 0.00
  */
 
-#ifndef __TEST_H___
-#define __TEST_H___
+#ifndef __I2C_MANAGER_CONF_H___
+#define __I2C_MANAGER_CONF_H___
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,16 +45,16 @@ extern "C" {
 /*========AAAA Typedef Definition END AAAA===================================*/
 
 /*========VVVV MACRO Definition START VVVV===================================*/
-/** 
- * @brief マクロ MAX_NANK の説明
- */
-/* # define MAX_NANKA 256 */
+#define I2CMANAGER_MAINLOOP_PACKET_SIZE 16
+
+#define ICM42688P_ADDRESS (0x69)
+
 
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
 /*========VVVV GLOBAL Variable Declaration START VVVV========================*/
 /**
- * @brief グローバル変数 lobal_var の説明  
+ * @brief グローバル変数 lobal_var の説明
 */
 /**
  * extern int global_var;
@@ -62,22 +62,8 @@ extern "C" {
 
 /*========AAAA GLOBAL Variable Declaration END AAAA==========================*/
 
-/*========VVVV GLOBAL Function Declaration START VVVV========================*/
-/**
- * @brief テスト関数
- * @param [in/out] buffer バッファ
- * @param [in] size バッファのサイズ
- * @return 戻り値の説明
- * @details 詳細な説明
- */
-/**
- * int testFunc(int* buffer, int size)
-*/
-
-/*========AAAA GLOBAL Function Declaration END AAAA==========================*/
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __TEST_H___ */
+#endif /* __I2C_MANAGER_CONF_H___ */

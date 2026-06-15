@@ -14,7 +14,7 @@
 #include "gpio.h"
 
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
-#include <stdio.h>
+#include <xprintf.h>
 #include <string.h>
 #endif /* SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST */
 
@@ -33,9 +33,8 @@
 
 /*========VVVV Private Variable Definition START VVVV========================*/
 
-static buzzerSchedule_t* buzzerScheduleBuffer;
-static buzzerSchedule_t buzzerScheduleExec;
-static uint8_t buzzerScheduleBufferSize;
+static buzzerSchedule_t    buzzerScheduleBuffer[BUZZERSCHEDULE_BUFFER_SIZE];
+static buzzerSchedule_t     buzzerScheduleExec;
 volatile static uint8_t buzzerBufferTail;
 volatile static uint8_t buzzerBufferHead;
 volatile static uint16_t buzzerOnCount;
@@ -54,9 +53,7 @@ static uint8_t testModeCnt;
 
 /*========VVVV GLOBAL Function Definition START VVVV=========================*/
 
-void buzzerInit(buzzerSchedule_t* bzbfr, uint8_t bzbfrsize) {
-    buzzerScheduleBuffer = bzbfr;
-    buzzerScheduleBufferSize = bzbfrsize;
+void buzzerInit(void) {
     buzzerBufferHead = 0;
     buzzerBufferTail = 0;
     buzzerOnCount = 0;
@@ -84,7 +81,7 @@ void buzzer_10ms(void) {
     }
     else {
         if (buzzerBufferHead != buzzerBufferTail) {
-            buzzerBufferHead = (buzzerBufferHead + 1) % buzzerScheduleBufferSize;
+            buzzerBufferHead = (buzzerBufferHead + 1) % BUZZERSCHEDULE_BUFFER_SIZE;
             buzzerScheduleExec = *(buzzerScheduleBuffer + buzzerBufferHead);
             buzzerOnCount = buzzerScheduleExec.oncount10ms;
             buzzerOffCount = buzzerScheduleExec.offcount10ms;
@@ -96,7 +93,7 @@ void buzzer_10ms(void) {
 void buzzerSetSchedule(buzzerSchedule_t bzsch) {
     __disable_irq();
     *(buzzerScheduleBuffer + buzzerBufferTail) = bzsch;
-    buzzerBufferTail = (buzzerBufferTail + 1) % buzzerScheduleBufferSize;
+    buzzerBufferTail = (buzzerBufferTail + 1) % BUZZERSCHEDULE_BUFFER_SIZE;
     __enable_irq();
 }
 
@@ -109,11 +106,10 @@ void buzzerSetScheduleMs(uint16_t onMs, uint16_t offMs) {
 
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
 uint8_t buzzerTest(char* strBuffer, uint8_t maxBufferSize) {
-    uint8_t len;
     switch (testModeCnt) {
     case 0:
         buzzerSetScheduleMs(100, 100);
-        len = snprintf(strBuffer, maxBufferSize,"0: on = 100ms, off = 100ms");
+        xsnprintf(strBuffer, maxBufferSize,"0: on = 100ms, off = 100ms");
         testModeCnt++;
         HAL_Delay(500);
         break;
@@ -121,7 +117,7 @@ uint8_t buzzerTest(char* strBuffer, uint8_t maxBufferSize) {
     case 1:
         buzzerSetScheduleMs(500, 250);
         buzzerSetScheduleMs(500, 250);
-        len = snprintf(strBuffer, maxBufferSize,"1:on = 500ms, off = 250ms\n\r2:on = 500ms, off = 250ms\n\r");
+        xsnprintf(strBuffer, maxBufferSize,"1:on = 500ms, off = 250ms\n\r2:on = 500ms, off = 250ms\n\r");
         testModeCnt++;
         HAL_Delay(2000);
         break;
@@ -130,21 +126,21 @@ uint8_t buzzerTest(char* strBuffer, uint8_t maxBufferSize) {
         buzzerSetScheduleMs(50, 50);
         buzzerSetScheduleMs(50, 50);
         buzzerSetScheduleMs(50, 50);
-        len = snprintf(strBuffer, maxBufferSize,"1: on = 50ms, off = 50ms\n\r2: on = 50ms, off = 50ms\n\r3: on = 50ms, off = 50ms\n\r");
+        xsnprintf(strBuffer, maxBufferSize,"1: on = 50ms, off = 50ms\n\r2: on = 50ms, off = 50ms\n\r3: on = 50ms, off = 50ms\n\r");
         testModeCnt++;
         HAL_Delay(1000);
         break;
 
     default :
         buzzerSetScheduleMs(10, 10);
-        len = snprintf(strBuffer, maxBufferSize,"x: on = 10ms, off = 10ms");
+        xsnprintf(strBuffer, maxBufferSize,"x: on = 10ms, off = 10ms");
         testModeCnt = 0;
         HAL_Delay(2000);
         break;
     }
 
 
-    return len;
+    return 0;
 }
 #endif /* SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST */
 

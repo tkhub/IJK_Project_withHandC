@@ -27,10 +27,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
+// #include <xprintf.h>
+#include <xprintf.h>
 
 #include "../../usercodes/sac/sac.h"
 #include "../../usercodes/app/app.h"
+#include "../../usercodes/service/i2cmn/i2c_manager.h"
 
 
 /* USER CODE END Includes */
@@ -55,8 +57,6 @@
 /* USER CODE BEGIN PV */
 volatile uint16_t   ADC1_DMA_data[3];
 volatile uint16_t   ADC2_DMA_data[4];
-volatile uiswevent_t uisw_event_buffer[16];
-buzzerSchedule_t    buzzerScheduleBuffer[16];
 volatile uint16_t   timerIntrDevCnt;
 
 /* USER CODE END PV */
@@ -67,29 +67,29 @@ void SystemClock_Config(void);
 
 /**
  * @brief 500usタイマーハンドラA
- * @detail タイマー割り込み内で実施
+ * @details タイマー割り込み内で実施
  */
 void timerInterruptHandler_500us(void);
 
 /**
  * @brief 1msタイマーハンドラA
- * @detail タイマー割り込み内で実施
+ * @details タイマー割り込み内で実施
  */
 void timerInterruptHandler_1msA(void);
 /**
  * @brief 1msタイマーハンドラB
- * @detail タイマー割り込み内で実施
+ * @details タイマー割り込み内で実施
  */
 void timerInterruptHandler_1msB(void);
 
 /**
  * @brief 10msタイマーハンドラA
- * @detail タイマー割り込み内で実施
+ * @details タイマー割り込み内で実施
  */
 void timerInterruptHandler_10msA(void);
 /**
  * @brief 10msタイマーハンドラB
- * @detail タイマー割り込み内で実施
+ * @details タイマー割り込み内で実施
  */
 void timerInterruptHandler_10msB(void);
 
@@ -100,6 +100,9 @@ void timerInterruptHandler_10msB(void);
 int __io_putchar(int ch){
     HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1 , 0xFFFF );
     return ch;
+}
+void _x_putchar(int ch) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1 , 0xFFFF );
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -131,6 +134,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
     HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 0);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -188,9 +192,6 @@ int main(void)
   HAL_ADC_Start_DMA(&hadc1, (uint32_t *)ADC1_DMA_data, 3);
   HAL_ADC_Start_DMA(&hadc2, (uint32_t *)ADC2_DMA_data, 4);
 
-  // I2C start
-
-
   //motor start
 
   HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1);
@@ -200,9 +201,10 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
 
+  i2cmanagerInit();
   /// SAC INIT
-  uiswInit(uisw_event_buffer, sizeof(uisw_event_buffer)/sizeof(uisw_event_buffer[0]));
-  buzzerInit(buzzerScheduleBuffer, sizeof(buzzerScheduleBuffer)/sizeof(buzzerScheduleBuffer[0]));
+  uiswInit();
+  buzzerInit();
   motorsInit();
   linesensorsInit(&ADC2_DMA_data[2], &ADC2_DMA_data[1], &ADC2_DMA_data[0], &ADC1_DMA_data[0]);
   markersensorsInit(&ADC1_DMA_data[2], &ADC1_DMA_data[1]);
@@ -213,7 +215,9 @@ int main(void)
   timerIntrDevCnt = 0;
   __HAL_TIM_SET_COUNTER(&htim6, 250);
   HAL_TIM_Base_Start_IT(&htim6);
-  printf("\r\n=== !! IJK BOOT OK !! ===\r\n");
+  xdev_out(_x_putchar);
+  xprintf("\r\n=== !! IJK BOOT OK !! ===\r\n");
+  appInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -221,11 +225,12 @@ int main(void)
   while (1)
   {
     sacLoop();
+    i2cmanagerMainloop();
     appMainLoop();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      HAL_Delay(50);
+      HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -287,11 +292,14 @@ void timerInterruptHandler_500us(void) {
 void timerInterruptHandler_1msA(void) {
     linesensorsMeasure_1ms();
     markersensorsMeasure_1ms();
+    i2cmanagerControl_1ms_A();
+    imuMeasure_1ms();
 }
 
 void timerInterruptHandler_1msB(void) {
-    motorsControl_1ms();
+    i2cmanagerControl_1ms_B();
     appIntervalHandler_1ms();
+    motorsControl_1ms();
 }
 
 void timerInterruptHandler_10msA(void) {

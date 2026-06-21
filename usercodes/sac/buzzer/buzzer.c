@@ -12,6 +12,8 @@
 /*========VVVV Include Local Header START VVVV===============================*/
 #include "buzzer.h"
 #include "gpio.h"
+#include "tim.h"
+#include <orgtypedef.h>
 
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
 #include <xprintf.h>
@@ -33,6 +35,7 @@
 
 /*========VVVV Private Variable Definition START VVVV========================*/
 
+volatile static uint16_t buzzerPeriodCnt;
 static buzzerSchedule_t buzzerScheduleBuffer[BUZZER_SCHEDULE_BUFFER_SIZE];
 static buzzerSchedule_t buzzerScheduleExec;
 volatile static uint8_t buzzerBufferTail;
@@ -40,6 +43,8 @@ volatile static uint8_t buzzerBufferHead;
 volatile static uint16_t buzzerOnCount;
 volatile static uint16_t buzzerOffCount;
 volatile static bool buzzerExecFlag;
+volatile static bool buzzerOnEdgeFlag;
+volatile static bool buzzerOffEdgeFlag;
 
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
 static uint8_t testModeCnt;
@@ -59,6 +64,9 @@ void buzzerInit(void) {
     buzzerOnCount = 0;
     buzzerOffCount = 0;
     buzzerExecFlag = false;
+    buzzerOnEdgeFlag = false;
+    buzzerOffEdgeFlag = false;
+    buzzerPeriodCnt = 10000;
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
     testModeCnt = 0;
 #endif /* SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST */
@@ -67,17 +75,25 @@ void buzzerInit(void) {
 void buzzer_10ms(void) {
     if (buzzerExecFlag) {
         if (buzzerOnCount != 0) {
-            HAL_GPIO_WritePin(BUZZER_GPIO_Port,BUZZER_Pin,1);
+            if (buzzerOnEdgeFlag) {
+                __HAL_TIM_SET_AUTORELOAD(&htim7, buzzerPeriodCnt);
+                HAL_TIM_Base_Start_IT(&htim7);
+                buzzerOnEdgeFlag = false;
+            }
             buzzerOnCount--;
         }
         else if (buzzerOffCount != 0) {
-            HAL_GPIO_WritePin(BUZZER_GPIO_Port,BUZZER_Pin,0);
+            if (buzzerOffEdgeFlag) {
+                HAL_TIM_Base_Stop_IT(&htim7);
+                buzzerOffEdgeFlag = false;
+            }
             buzzerOffCount--;
         }
         else {
             buzzerExecFlag = false;
+            buzzerOnEdgeFlag = true;
+            buzzerOffEdgeFlag = true;
         }
-
     }
     else {
         if (buzzerBufferHead != buzzerBufferTail) {
@@ -85,9 +101,14 @@ void buzzer_10ms(void) {
             buzzerScheduleExec = *(buzzerScheduleBuffer + buzzerBufferHead);
             buzzerOnCount = buzzerScheduleExec.oncount10ms;
             buzzerOffCount = buzzerScheduleExec.offcount10ms;
+            buzzerPeriodCnt = buzzerScheduleExec.periodus;
             buzzerExecFlag = true;
         }
     }
+}
+
+void buzzerToggle(void) {
+    HAL_GPIO_TogglePin(BUZZER_GPIO_Port,BUZZER_Pin);
 }
 
 void buzzerSetSchedule(buzzerSchedule_t bzsch) {
@@ -97,8 +118,14 @@ void buzzerSetSchedule(buzzerSchedule_t bzsch) {
     __enable_irq();
 }
 
-void buzzerSetScheduleMs(uint16_t onMs, uint16_t offMs) {
+void buzzerSetScheduleMs(float hz, uint16_t onMs, uint16_t offMs) {
     buzzerSchedule_t tmp;
+    // 64MHz / 16 / period = hz
+    // buzzerPeriodCnt = (uint32_t)400000 / hz;
+    if (hz < BUZZER_HZ_LOWLIM) {
+        hz = BUZZER_HZ_LOWLIM;
+    }
+    tmp.periodus = (uint16_t)((64.0F*1.0E6/16.0F/hz/2.0F) + 0.5) - 1.0;
     tmp.oncount10ms = onMs / 10;
     tmp.offcount10ms = offMs / 10;
     buzzerSetSchedule(tmp);
@@ -108,31 +135,31 @@ void buzzerSetScheduleMs(uint16_t onMs, uint16_t offMs) {
 uint8_t buzzerTest(char* strBuffer, uint8_t maxBufferSize) {
     switch (testModeCnt) {
     case 0:
-        buzzerSetScheduleMs(100, 100);
+        buzzerSetScheduleMs(100, 100, 100);
         xsnprintf(strBuffer, maxBufferSize,"0: on = 100ms, off = 100ms");
         testModeCnt++;
         HAL_Delay(500);
         break;
 
     case 1:
-        buzzerSetScheduleMs(500, 250);
-        buzzerSetScheduleMs(500, 250);
+        buzzerSetScheduleMs(2000, 500, 250);
+        buzzerSetScheduleMs(1500,500, 250);
         xsnprintf(strBuffer, maxBufferSize,"1:on = 500ms, off = 250ms\n\r2:on = 500ms, off = 250ms\n\r");
         testModeCnt++;
         HAL_Delay(2000);
         break;
 
     case 2:
-        buzzerSetScheduleMs(50, 50);
-        buzzerSetScheduleMs(50, 50);
-        buzzerSetScheduleMs(50, 50);
+        buzzerSetScheduleMs(440, 50, 50);
+        buzzerSetScheduleMs(220,50, 50);
+        buzzerSetScheduleMs(100, 50, 50);
         xsnprintf(strBuffer, maxBufferSize,"1: on = 50ms, off = 50ms\n\r2: on = 50ms, off = 50ms\n\r3: on = 50ms, off = 50ms\n\r");
         testModeCnt++;
         HAL_Delay(1000);
         break;
 
     default :
-        buzzerSetScheduleMs(10, 10);
+        buzzerSetScheduleMs(1000, 10, 10);
         xsnprintf(strBuffer, maxBufferSize,"x: on = 10ms, off = 10ms");
         testModeCnt = 0;
         HAL_Delay(2000);

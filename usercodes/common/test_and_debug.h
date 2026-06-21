@@ -16,7 +16,7 @@ extern "C" {
 /*========VVVV MACRO Definition START VVVV===================================*/
 
 //! SACデバッグ時はコメントアウトを解除。同時に複数は使わないこと
-// #define _ENABLE_SAC_TEST_   //! SACレイヤーのテスト・デバッグ用のスイッチ
+#define _ENABLE_SAC_TEST_   //! SACレイヤーのテスト・デバッグ用のスイッチ
 
 #ifdef _ENABLE_SAC_TEST_
     #define DEBUGMODE_UISW_TEST         1                       //! UISWのテスト・デバッグ用のスイッチ
@@ -25,7 +25,7 @@ extern "C" {
     #define DEBUGMODE_LINEMKR_TEST      4                       //! ラインセンサ・マーカセンサのテストデバッグ用のスイッチ
     #define DEBUGMODE_BATTERY_TEST      5                       //! バッテリーのテスト・デバッグ用のスイッチ
     #define DEBUGMODE_IMU_TEST          6                       //! IMUセンサのテスト・デバッグ用のスイッチ
-    #define SAC_DEBUGMODE               DEBUGMODE_LINEMKR_TEST  //! 現在のSACレイヤーのテスト・デバッグモード
+    #define SAC_DEBUGMODE               DEBUGMODE_BUZZER_TEST   //! 現在のSACレイヤーのテスト・デバッグモード
 #else
     #define DEBUGMODE_NONE_TEST         0                       //! テスト・デバッグ用のスイッチ
     #define SAC_DEBUGMODE               DEBUGMODE_NONE_TEST     //! 現在のSACレイヤーのテスト・デバッグモード

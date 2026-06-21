@@ -205,7 +205,7 @@ int main(void)
   i2cmanagerInit();
   /// SAC INIT
   uiswInit();
-  buzzerInit(buzzerScheduleBuffer, sizeof(buzzerScheduleBuffer)/sizeof(buzzerScheduleBuffer[0]));
+  buzzerInit();
   motorsInit();
   linesensorsInit(&ADC2_DMA_data[2], &ADC2_DMA_data[1], &ADC2_DMA_data[0], &ADC1_DMA_data[0]);
   markersensorsInit(&ADC1_DMA_data[2], &ADC1_DMA_data[1]);

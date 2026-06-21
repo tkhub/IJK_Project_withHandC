@@ -35,10 +35,11 @@ typedef struct {
 /*========AAAA Typedef Definition END AAAA===================================*/
 
 /*========VVVV MACRO Definition START VVVV===================================*/
-/** 
- * @brief マクロ MAX_NANK の説明
+/**
+ * @brief ブザースケジューラのバッファサイズ定義
+ *
  */
-/* # define MAX_NANKA 256 */
+#define BUZZER_SCHEDULE_BUFFER_SIZE 16
 
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
@@ -55,11 +56,9 @@ typedef struct {
 /*========VVVV GLOBAL Function Declaration START VVVV========================*/
 /**
  * @brief ブザーの初期化関数
- * @param [in] bzbfr バッファ
- * @param [in] size バッファのサイズ
- * @details ブザー鳴動用スケジュール用のバッファは初期化元で確保してもらう
+ *
  */
-void buzzerInit(buzzerSchedule_t* bzbfr, uint8_t bzbfrsize);
+void buzzerInit(void);
 
 /**
  * @brief ブザー鳴動実行関数

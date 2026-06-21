@@ -118,7 +118,7 @@ void appMainLoop(void){
 
     case ZANTEI_WAIT_STARTGT:
         if (mkev == MARKER_EVENT_GOAL) {
-            ijk_drives.powerLR = 0.60;
+            ijk_drives.powerLR = 0.50;
             bz.oncount10ms = 50;
             bz.offcount10ms = 25;
             buzzerSetSchedule(bz);

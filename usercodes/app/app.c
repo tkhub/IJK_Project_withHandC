@@ -13,6 +13,7 @@
 #include "app.h"
 #include "app_if.h"
 #include <xprintf.h>
+#include "buzzer/buzzer.h"
 #include "linmkrssr/linmkrssr.h"
 #include "motor/motor.h"
 #include "sequencer.h"
@@ -93,7 +94,6 @@ void appIntervalHandler_10ms(void) {
 /** APPのメインループ */
 void appMainLoop(void){
     markerevent_t mkev;
-    buzzerSchedule_t bz;
     float mL, mR, pos;
     pos = linesensorsReadPosition();
     motorsReadPower(&mL, &mR);
@@ -108,9 +108,9 @@ void appMainLoop(void){
     case ZANTEI_WAIT_SW2:
         if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) {
             ijk_drives.powerLR = 0.3;
-            bz.oncount10ms = 50;
-            bz.offcount10ms = 1;
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(1046.5F, 490,10);
+            buzzerSetScheduleMs(1396.9F, 490,10);
+            buzzerSetScheduleMs(15680.0F, 490,10);
             zanteiSq = ZANTEI_WAIT_STARTGT;
             xprintf("ZANTEI SW2\r\n");
         }
@@ -119,10 +119,11 @@ void appMainLoop(void){
     case ZANTEI_WAIT_STARTGT:
         if (mkev == MARKER_EVENT_GOAL) {
             ijk_drives.powerLR = 0.50;
-            bz.oncount10ms = 50;
-            bz.offcount10ms = 25;
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(880.000F, 490,10);
+            buzzerSetScheduleMs(1046.502F, 490,10);
+            buzzerSetScheduleMs(1318.510F, 490,10);
+            buzzerSetScheduleMs(1480.000F, 490,10);
+            buzzerSetScheduleMs(1760.000F, 490,10);
             zanteiSq = ZANTEI_WAIT_GOALGT;
             xprintf("ZANTEI START\r\n");
         }
@@ -131,9 +132,7 @@ void appMainLoop(void){
     case ZANTEI_WAIT_GOALGT:
         xprintf("%f,\t%f,\t%f", pos, mL, mR);
         if (mkev == MARKER_EVENT_CORNER) {
-            bz.oncount10ms = 50;
-            bz.offcount10ms = 25;
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(3520.0F, 200,10);
             zanteiSq = ZANTEI_WAIT_PASSCRS;
             zanteiCnt = 5;
             xprintf("ZANTEI CORNER");
@@ -145,10 +144,8 @@ void appMainLoop(void){
                 (ijk_sensors.linesensor.binaries == 0x0D) ||
                 (ijk_sensors.linesensor.binaries == 0x0A) ||
                 (ijk_sensors.linesensor.binaries == 0x05) ){
-            bz.oncount10ms = 25;
-            bz.offcount10ms = 25;
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(2349.320F, 200,10);
+            buzzerSetScheduleMs(2637.020F, 400,10);
             zanteiSq = ZANTEI_WAIT_PASSCRS;
             zanteiCnt = 50;
             xprintf("ZANTEI CROSS");
@@ -156,11 +153,7 @@ void appMainLoop(void){
 
         else if (mkev == MARKER_EVENT_GOAL) {
             ijk_drives.powerLR = 0.2;
-            bz.oncount10ms = 20;
-            bz.offcount10ms = 10;
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(3520.0F, 1000,100);
             zanteiSq = ZANTEI_WAIT_STOP;
             zanteiCnt = 100;
             xprintf("ZANTEI STOP");
@@ -181,13 +174,12 @@ void appMainLoop(void){
 
         if (zanteiCnt == 0) {
             ijk_drives.powerLR = 0.0;
-            bz.oncount10ms = 10;
-            bz.offcount10ms = 10;
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
-            buzzerSetSchedule(bz);
+            buzzerSetScheduleMs(1568.0F, 490,10);
+            buzzerSetScheduleMs(1397.0F, 490,10);
+            buzzerSetScheduleMs(1568.0F, 490,20);
+            buzzerSetScheduleMs(1568.0F, 490,10);
+            buzzerSetScheduleMs(1397.0F, 490,10);
+            buzzerSetScheduleMs(1568.0F, 490,20);
             zanteiSq = ZANTEI_WAIT_INIT;
             xprintf("ZANTEI END\n\r");
         }

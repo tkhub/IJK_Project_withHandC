@@ -9,6 +9,7 @@
 #ifndef __SAC_BUZZER_BUZZER_H___
 #define __SAC_BUZZER_BUZZER_H___
 
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +29,7 @@ extern "C" {
  * @details スケジュールするブザーの鳴動パターンを設定するための型
  */
 typedef struct {
+    uint16_t periodus;
     uint16_t oncount10ms;
     uint16_t offcount10ms;
 } buzzerSchedule_t;
@@ -35,11 +37,12 @@ typedef struct {
 /*========AAAA Typedef Definition END AAAA===================================*/
 
 /*========VVVV MACRO Definition START VVVV===================================*/
-/** 
- * @brief マクロ MAX_NANK の説明
+/**
+ * @brief ブザースケジューラのバッファサイズ定義
+ *
  */
-/* # define MAX_NANKA 256 */
-#define BUZZERSCHEDULE_BUFFER_SIZE 16
+#define BUZZER_SCHEDULE_BUFFER_SIZE 16
+#define BUZZER_HZ_LOWLIM  (100.0F)
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
 /*========VVVV GLOBAL Variable Declaration START VVVV========================*/
@@ -55,9 +58,7 @@ typedef struct {
 /*========VVVV GLOBAL Function Declaration START VVVV========================*/
 /**
  * @brief ブザーの初期化関数
- * @param [in] bzbfr バッファ
- * @param [in] size バッファのサイズ
- * @details ブザー鳴動用スケジュール用のバッファは初期化元で確保してもらう
+ *
  */
 void buzzerInit(void);
 
@@ -68,14 +69,23 @@ void buzzerInit(void);
 void buzzer_10ms(void);
 
 /**
+ * @brief ブザーGPIO制御処理
+ * 
+ */
+void buzzerToggle(void);
+
+/**
  * @brief ブザーのスケジュールをセットする
  */
 void buzzerSetSchedule(buzzerSchedule_t bzsch);
 
 /**
  * @brief ブザーのスケジュールをms単位でセットする
+ * @param hz sound Frequency
+ * @param onMs sound on time
+ * @param offMs sound off time
  */
-void buzzerSetScheduleMs(uint16_t onMs, uint16_t offMs);
+void buzzerSetScheduleMs(float hz, uint16_t onMs, uint16_t offMs);
 
 #if SAC_DEBUGMODE == DEBUGMODE_BUZZER_TEST
 /**

@@ -21,6 +21,8 @@
 #include "adc.h"
 #include "dma.h"
 #include "i2c.h"
+#include "stm32f3xx_hal_gpio.h"
+#include "stm32f3xx_hal_tim.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -107,6 +109,9 @@ void _x_putchar(int ch) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);
+    if (htim == &htim7) {
+      buzzerToggle();
+    }
     if (htim == &htim6) {
 
         timerInterruptHandler_500us();
@@ -177,6 +182,7 @@ int main(void)
   MX_TIM17_Init();
   MX_TIM3_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   for (cnt = 0; cnt < 8; cnt++) {
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1);

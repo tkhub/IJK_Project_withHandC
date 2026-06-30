@@ -8,6 +8,7 @@
 
 /*========VVVV Include Standard Header START VVVV============================*/
 #include "orgtypedef.h"
+#include <math.h>
 /*========AAAA Include Standard Header END AAAA==============================*/
 
 /*========VVVV Include Local Header START VVVV===============================*/
@@ -34,6 +35,7 @@ static float linedpos_last;
 static float kp;
 static float kd;
 static float kdd;
+static float safe_break_gain;
 static float steering;
 static float motorLpwr, motorRpwr;
 
@@ -55,11 +57,12 @@ void divider(const float acc, const float str, float* l, float* r);
 
 /*========VVVV GLOBAL Function Definition START VVVV=========================*/
 void tracectrlInit(void) {
-    speed = 0.0;
-    steering = 0.0;
-    kp = 0.015;
-    kd = 0.2;
-    kdd = 0.075;
+    speed = 0.0F;
+    steering = 0.0F;
+    kp = 0.015F;
+    kd = 0.2F;
+    kdd = 0.075F;
+    safe_break_gain = 0.05F;
 }
 
 void traceCtrInterval_1ms(sensors_t allSensors, drives_t drives) {
@@ -67,8 +70,8 @@ void traceCtrInterval_1ms(sensors_t allSensors, drives_t drives) {
     linedpos_last = allSensors.linesensor.position - linepos_last;
     linepos_last = allSensors.linesensor.position;
 
-    divider(drives.powerLR, steering, &motorLpwr, &motorRpwr);
-    if ((-0.05 < drives.powerLR) && (drives.powerLR < 0.05)) {
+    divider(drives.powerLR - fabs(safe_break_gain * allSensors.linesensor.position) , steering, &motorLpwr, &motorRpwr);
+    if ((-0.05F < drives.powerLR) && (drives.powerLR < 0.05F)) {
         motorsDrive(0, 0);
     }
     else {

@@ -35,7 +35,6 @@ static float linedpos_last;
 static float kp;
 static float kd;
 static float kdd;
-static float safe_break_gain;
 static float steering;
 static float motorLpwr, motorRpwr;
 
@@ -62,7 +61,6 @@ void tracectrlInit(void) {
     kp = 0.015F;
     kd = 0.2F;
     kdd = 0.075F;
-    safe_break_gain = 0.05F;
 }
 
 void traceCtrInterval_1ms(sensors_t allSensors, drives_t drives) {
@@ -70,7 +68,7 @@ void traceCtrInterval_1ms(sensors_t allSensors, drives_t drives) {
     linedpos_last = allSensors.linesensor.position - linepos_last;
     linepos_last = allSensors.linesensor.position;
 
-    divider(drives.powerLR - fabs(safe_break_gain * allSensors.linesensor.position) , steering, &motorLpwr, &motorRpwr);
+    divider(drives.powerLR - fabs(drives.breakGain * allSensors.linesensor.position) , steering, &motorLpwr, &motorRpwr);
     if ((-0.05F < drives.powerLR) && (drives.powerLR < 0.05F)) {
         motorsDrive(0, 0);
     }

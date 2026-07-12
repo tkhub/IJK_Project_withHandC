@@ -94,6 +94,7 @@ typedef struct {
     drive_t         left;
     drive_t         right;
     float           powerLR;
+    float           breakGain;
 } drives_t;
 
 /*===========================================================================*/

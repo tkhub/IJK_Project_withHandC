@@ -11,6 +11,7 @@
 
 /*========VVVV Include Local Header START VVVV===============================*/
 #include "app.h"
+#include "app_const.h"
 #include "app_if.h"
 #include <xprintf.h>
 #include "buzzer/buzzer.h"
@@ -29,12 +30,13 @@
  * @brief マクロ MAX_NANK の説明
  */
 /* #define MAX_NANKA 256 */
-#define ZANTEI_WAIT_INIT 	0
-#define ZANTEI_WAIT_SW2 	1
-#define ZANTEI_WAIT_STARTGT 2
-#define ZANTEI_WAIT_PASSCRS 3
-#define ZANTEI_WAIT_GOALGT 	4
-#define ZANTEI_WAIT_STOP 	5
+#define ZANTEI_WAIT_INIT    0
+#define ZANTEI_WAIT_START   1
+#define ZANTEI_WAIT_CONF    2
+#define ZANTEI_WAIT_STARTGT 3
+#define ZANTEI_WAIT_PASSCRS 4
+#define ZANTEI_WAIT_GOALGT  5
+#define ZANTEI_WAIT_STOP    6
 
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
@@ -64,6 +66,10 @@ volatile static uiout_t     ijk_uiout;
 volatile static uiin_t      ijk_uiin;
 volatile static uint16_t 	zanteiCnt;
 volatile static uint8_t zanteiSq = ZANTEI_WAIT_INIT;
+volatile static uint8_t      run_param_cnt;
+volatile static float       run_power;
+volatile static float       run_break_gain;
+
 /*========AAAA Private Function Prototype Declaration END AAAA===============*/
 
 /*========VVVV GLOBAL Function Definition START VVVV=========================*/
@@ -93,6 +99,7 @@ void appIntervalHandler_10ms(void) {
 
 /** APPのメインループ */
 void appMainLoop(void){
+    uint8_t cnt;
     markerevent_t mkev;
     float mL, mR, pos;
     pos = linesensorsReadPosition();
@@ -101,24 +108,53 @@ void appMainLoop(void){
     mkev = markerReadEvent();
     switch (zanteiSq) {
     case ZANTEI_WAIT_INIT:
-        ijk_drives.powerLR = 0.0;
-        zanteiSq = ZANTEI_WAIT_SW2;
+        ijk_drives.powerLR = 0.0F;
+        ijk_drives.breakGain = 0.0F;
+        run_power = RUN_POWERS[0];
+        run_break_gain = RUN_BREAK[0];
+        run_param_cnt = 0;
+        zanteiSq = ZANTEI_WAIT_START;
         xprintf("ZANTEI INIT\r\n");
         break;
-    case ZANTEI_WAIT_SW2:
-        if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) {
-            ijk_drives.powerLR = 0.3;
+    case ZANTEI_WAIT_START:
+        if (ijk_uiin.uiswevent == UISW1_PUSH_EVENT) {
+            buzzerSetScheduleMs(2400.0F, 100,50);
+            buzzerSetScheduleMs(2400.0F, 100,50);
+            zanteiSq = ZANTEI_WAIT_CONF;
+            xprintf("ZANTEI SW1\r\n");
+        }
+        else if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) {
             buzzerSetScheduleMs(1046.5F, 490,10);
             buzzerSetScheduleMs(1396.9F, 490,10);
             buzzerSetScheduleMs(15680.0F, 490,10);
+            ijk_drives.powerLR = 0.30F;
+            ijk_drives.breakGain = 0.0F;
             zanteiSq = ZANTEI_WAIT_STARTGT;
-            xprintf("ZANTEI SW2\r\n");
+            xprintf("ZANTEI SW2 (%f, %f)\r\n", run_power, run_break_gain);
+        }
+        break;
+    case ZANTEI_WAIT_CONF:
+        if (ijk_uiin.uiswevent == UISW1_PUSH_EVENT) {
+            run_param_cnt = (run_param_cnt + 1 ) % MAX_PARAM_NUM;
+            run_power = RUN_POWERS[run_param_cnt];
+            run_break_gain = RUN_BREAK[run_param_cnt];
+            xprintf("ZANTEI PARAM[%d]\r\n", run_param_cnt);
+            for (cnt = 0; cnt < run_param_cnt; cnt++) {
+                buzzerSetScheduleMs(2000.0F, 100,200);
+            }
+        }
+        else if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) {
+            zanteiSq = ZANTEI_WAIT_START;
+            buzzerSetScheduleMs(2400.0F, 750,50);
+            buzzerSetScheduleMs(2400.0F, 750,50);
+            xprintf("ZANTEI CONF END\r\n");
         }
         break;
 
     case ZANTEI_WAIT_STARTGT:
         if (mkev == MARKER_EVENT_GOAL) {
-            ijk_drives.powerLR = 0.50;
+            ijk_drives.powerLR = run_power;
+            ijk_drives.breakGain = run_break_gain;
             buzzerSetScheduleMs(880.000F, 490,10);
             buzzerSetScheduleMs(1046.502F, 490,10);
             buzzerSetScheduleMs(1318.510F, 490,10);
@@ -173,7 +209,8 @@ void appMainLoop(void){
     case ZANTEI_WAIT_STOP:
 
         if (zanteiCnt == 0) {
-            ijk_drives.powerLR = 0.0;
+            ijk_drives.powerLR = 0.0F;
+            ijk_drives.breakGain = 0.0F;
             buzzerSetScheduleMs(1568.0F, 490,10);
             buzzerSetScheduleMs(1397.0F, 490,10);
             buzzerSetScheduleMs(1568.0F, 490,20);

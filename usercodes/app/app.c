@@ -19,6 +19,7 @@
 #include "motor/motor.h"
 #include "sequencer.h"
 #include "tracectrl.h"
+#include "uisw/uisw.h"
 
 /*========AAAA Include Local Header END AAAA=================================*/
 
@@ -33,10 +34,12 @@
 #define ZANTEI_WAIT_INIT    0
 #define ZANTEI_WAIT_START   1
 #define ZANTEI_WAIT_CONF    2
-#define ZANTEI_WAIT_STARTGT 3
-#define ZANTEI_WAIT_PASSCRS 4
-#define ZANTEI_WAIT_GOALGT  5
-#define ZANTEI_WAIT_STOP    6
+#define ZANTEI_WAIT_STRTCNT 3
+#define ZANTEI_WAIT_STARTGT 4
+#define ZANTEI_WAIT_PASSCRS 5
+#define ZANTEI_WAIT_GOALGT  6
+#define ZANTEI_WAIT_STOP    7
+#define ZANTEI_WAIT_WAITATS 8
 
 /*========AAAA MACRO Definition END AAAA=====================================*/
 
@@ -66,9 +69,10 @@ volatile static uiout_t     ijk_uiout;
 volatile static uiin_t      ijk_uiin;
 volatile static uint16_t 	zanteiCnt;
 volatile static uint8_t zanteiSq = ZANTEI_WAIT_INIT;
-volatile static uint8_t      run_param_cnt;
+volatile static uint8_t     run_param_cnt;
 volatile static float       run_power;
 volatile static float       run_break_gain;
+volatile static uint8_t     autostart_cnt;
 
 /*========AAAA Private Function Prototype Declaration END AAAA===============*/
 
@@ -82,6 +86,7 @@ volatile static float       run_break_gain;
 void appInit(void) {
     tracectrlInit();
     sequencerInit();
+    autostart_cnt = 0;
 }
 
 /** APPの1msインターバルハンドラ */
@@ -110,8 +115,8 @@ void appMainLoop(void){
     case ZANTEI_WAIT_INIT:
         ijk_drives.powerLR = 0.0F;
         ijk_drives.breakGain = 0.0F;
-        run_power = RUN_POWERS[0];
-        run_break_gain = RUN_BREAK[0];
+        run_power = RUN_POWERS[autostart_cnt];
+        run_break_gain = RUN_BREAK[autostart_cnt];
         run_param_cnt = 0;
         zanteiSq = ZANTEI_WAIT_START;
         xprintf("ZANTEI INIT\r\n");
@@ -126,10 +131,9 @@ void appMainLoop(void){
         else if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) {
             buzzerSetScheduleMs(1046.5F, 490,10);
             buzzerSetScheduleMs(1396.9F, 490,10);
-            buzzerSetScheduleMs(15680.0F, 490,10);
-            ijk_drives.powerLR = 0.30F;
-            ijk_drives.breakGain = 0.0F;
-            zanteiSq = ZANTEI_WAIT_STARTGT;
+            buzzerSetScheduleMs(1568.0F, 490,10);
+            zanteiSq = ZANTEI_WAIT_STRTCNT;
+            zanteiCnt = 200;
             xprintf("ZANTEI SW2 (%f, %f)\r\n", run_power, run_break_gain);
         }
         break;
@@ -151,6 +155,26 @@ void appMainLoop(void){
         }
         break;
 
+    case ZANTEI_WAIT_STRTCNT:
+        if (zanteiCnt == 0) {
+            buzzerSetScheduleMs(2000.0F, 490,10);
+            ijk_drives.powerLR = 0.30F;
+            ijk_drives.breakGain = 0.0F;
+            xprintf("ZANTEI START 0\n\r");
+            zanteiSq = ZANTEI_WAIT_STARTGT;
+        }
+        else {
+            if (zanteiCnt == 100) {
+                buzzerSetScheduleMs(1000.0F, 100,10);
+                xprintf("ZANTEI START 2\n\r");
+            }
+            else if (zanteiCnt == 50) {
+                buzzerSetScheduleMs(1500.0F, 100,10);
+                xprintf("ZANTEI START 1\n\r");
+            }
+            zanteiCnt--;
+        }
+        break;
     case ZANTEI_WAIT_STARTGT:
         if (mkev == MARKER_EVENT_GOAL) {
             ijk_drives.powerLR = run_power;
@@ -217,8 +241,31 @@ void appMainLoop(void){
             buzzerSetScheduleMs(1568.0F, 490,10);
             buzzerSetScheduleMs(1397.0F, 490,10);
             buzzerSetScheduleMs(1568.0F, 490,20);
-            zanteiSq = ZANTEI_WAIT_INIT;
+            zanteiSq = ZANTEI_WAIT_WAITATS;
             xprintf("ZANTEI END\n\r");
+            zanteiCnt = 500;
+        }
+        else if (mkev == MARKER_EVENT_CORNER) {
+            zanteiSq = ZANTEI_WAIT_GOALGT;
+        }
+        else {
+            zanteiCnt--;
+        }
+    break;
+    case ZANTEI_WAIT_WAITATS:
+        if (zanteiCnt == 0) {
+            buzzerSetScheduleMs(1568.0F, 490,20);
+            autostart_cnt = (autostart_cnt + 1) % MAX_PARAM_NUM;
+            run_power = RUN_POWERS[autostart_cnt];
+            run_break_gain = RUN_BREAK[autostart_cnt];
+            zanteiSq = ZANTEI_WAIT_STRTCNT;
+            zanteiCnt = 200;
+            xprintf("ZANTEI ATSTART[%d]\n\r", autostart_cnt);
+        }
+        else if (ijk_uiin.uiswevent == UISW2_PUSH_EVENT) { 
+            buzzerSetScheduleMs(1000.0F, 490,20);
+            zanteiSq = ZANTEI_WAIT_INIT;
+            xprintf("ZANTEI ATSTART CANCEL\n\r");
         }
         else if (mkev == MARKER_EVENT_CORNER) {
             zanteiSq = ZANTEI_WAIT_GOALGT;
